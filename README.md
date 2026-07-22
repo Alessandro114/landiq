@@ -29,7 +29,7 @@ A report that normally takes 2-3 weeks of technical consultants costs €499 and
 ### With Docker (recommended)
 
 ```bash
-git clone https://github.com/get-scala/landiq
+git clone https://github.com/Alessandro114/landiq
 cd landiq
 cp .env.example .env
 # Add your Gemini API key to .env (free at https://aistudio.google.com)
@@ -59,7 +59,7 @@ docker exec landiq-landiq-1 python src/run_warsaw_report.py   # Poland (generic 
 ### Without Docker
 
 ```bash
-git clone https://github.com/get-scala/landiq
+git clone https://github.com/Alessandro114/landiq
 cd landiq
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
@@ -90,7 +90,7 @@ python src/run_warsaw_report.py       # → reports/warsaw_pl_v1.pdf
 
 **Cities with full support:** Gaeta, Roma, Milano, Napoli, Torino, Bologna, Firenze, Venezia, Bergamo (IT) · Tbilisi, Batumi, Kutaisi, Kobuleti, Borjomi (GE)
 
-**Any other country** runs via `GenericConnector` with AI-estimated prices. The report clearly labels the data as estimated and links to `github.com/get-scala/landiq/connectors` to contribute real data.
+**Any other country** runs via `GenericConnector` with AI-estimated prices. The report clearly labels the data as estimated and links to `github.com/Alessandro114/landiq/connectors` to contribute real data.
 
 ---
 

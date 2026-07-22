@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  landiq:
+    build: .
+    ports:
+      - "8383:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - LANDIQ_CACHE_DIR=/app/data/cache
+    volumes:
+      - ./reports:/app/reports        # generated PDFs persist on host
+      - ./data/cache:/app/data/cache  # scraper cache persists
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s

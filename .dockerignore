@@ -1,0 +1,12 @@
+__pycache__
+*.pyc
+.venv
+.env
+*.log
+.git
+reports/*.pdf
+data/pgt_cache
+data/omi_cache
+data/pvp_cache
+data/vincoli_cache
+data/catasto_cache

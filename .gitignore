@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment
+.env
+*.env.local
+
+# Generated output (don't commit client reports)
+reports/*.pdf
+data/omi_cache/
+data/pgt_cache/
+data/cache/
+data/catasto_cache/
+data/pvp_cache/
+data/vincoli_cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

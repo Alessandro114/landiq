@@ -1,0 +1,32 @@
+# LandIQ MVP — Python dependencies
+# Python 3.12+
+
+# Web framework
+fastapi>=0.115
+uvicorn[standard]>=0.30
+
+# PDF + charts
+reportlab>=4.2
+matplotlib>=3.9
+
+# Numerics / data
+numpy>=2.0
+numpy-financial>=1.0
+pandas>=2.2
+scipy>=1.13
+
+# Scraping
+requests>=2.32
+beautifulsoup4>=4.12
+lxml>=5.2
+pypdf2>=3.0
+pdfplumber>=0.11
+
+# LLM (primary + fallback)
+google-generativeai>=0.8
+
+# Schema / validation
+pydantic>=2.8
+
+# Dev / tooling
+python-dotenv>=1.0

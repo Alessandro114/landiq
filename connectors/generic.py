@@ -87,7 +87,7 @@ class GenericConnector(ConnectorBase):
             price_min=round(price - spread, 0),
             price_max=round(price + spread, 0),
             currency="EUR",
-            source=f"LandIQ AI estimate (no {self.country_code} connector yet — contribute at github.com/get-scala/landiq)",
+            source=f"LandIQ AI estimate (no {self.country_code} connector yet — contribute at github.com/Alessandro114/landiq)",
             zones=[],
             raw={"estimated": True, "country": self.country_code},
         )
@@ -106,7 +106,7 @@ class GenericConnector(ConnectorBase):
             allowed_uses=["residential", "commercial", "mixed"],
             constraints=[
                 f"No {self.country_code} connector available — verify planning rules locally.",
-                "Contribute a connector: github.com/get-scala/landiq/tree/main/connectors",
+                "Contribute a connector: github.com/Alessandro114/landiq/tree/main/connectors",
             ],
             source="LandIQ defaults (unsupported country)",
         )

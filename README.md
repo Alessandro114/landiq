@@ -1,29 +1,31 @@
-# LandIQ — AI Feasibility Engine for Real Estate Developers
+# LandIQ — Autonomous AI Agent for Real Estate Feasibility
 
-> **Turn any property address into a full investment feasibility report in 30 minutes.**
-> No consultants. No weeks of waiting. Just data, scenarios, and a clear GO / NO-GO.
+> **Give the agent a property address. It does the rest.**
+> Market research, urban planning analysis, DCF, Monte Carlo, risk matrix, GO/NO-GO verdict — fully autonomous, no human in the loop.
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://python.org)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](Dockerfile)
-[![Countries](https://img.shields.io/badge/countries-4%20connectors%20%2B%20generic-green.svg)](#countries-supported)
+[![Countries](https://img.shields.io/badge/countries-5%20connectors%20%2B%20worldwide-green.svg)](#countries-supported)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Good First Issues](https://img.shields.io/github/issues/Alessandro114/landiq/good%20first%20issue?color=7057ff&label=good%20first%20issues)](https://github.com/Alessandro114/landiq/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
 ---
 
-## What it does
+## What the Agent Does
 
-Given a land plot or building **anywhere in the world**, LandIQ produces a **15-20 page PDF report** with:
+You provide: **an address + sqm + intended use**. The agent autonomously:
 
-- **Market values** — real price per sqm from official sources (OMI in Italy, myhome.ge in Georgia, etc.)
-- **Urban planning analysis** — buildable ratio, max height, allowed uses, planning constraints
-- **3 development scenarios** — residential, mixed-use, status-quo refurb
-- **DCF model** — NPV + IRR for each scenario over your investment horizon
-- **Monte Carlo simulation** — 10,000 runs, P5/P50/P95 distribution, tornado chart
-- **AI verdict** — 2-paragraph executive summary via Gemini 2.5 Flash
+1. **Identifies the country** → selects the right data connector (or generic fallback)
+2. **Researches market data** — real prices/sqm from official sources (OMI, INE, myhome.ge, etc.)
+3. **Researches urbanistic constraints** — zoning, FAR, height limits, permits, heritage buffers
+4. **Builds 3 investment scenarios** — residential, touristic/mixed, status-quo refurb
+5. **Runs DCF analysis** — NPV + IRR for each scenario over your investment horizon
+6. **Runs Monte Carlo simulation** — 10,000 iterations, P5/P50/P95 distribution, tornado chart
+7. **Generates AI verdict** — 2-paragraph executive summary via Gemini 2.5 Flash with GO/NO-GO
+8. **Exports a 15-20 page PDF report** — professional, investor-ready, with charts and tables
 
-A report that normally takes 2-3 weeks of technical consultants costs €499 and runs in 30 minutes.
+**What took consultants 2-3 weeks and ~$15K, the agent does in under 5 minutes.**
 
 ---
 
@@ -39,7 +41,7 @@ cp .env.example .env
 
 docker compose up -d
 
-# Run a report via API
+# Run the agent via API
 curl -X POST http://localhost:8383/analyze \
   -H "Content-Type: application/json" \
   -d '{
@@ -52,11 +54,11 @@ curl -X POST http://localhost:8383/analyze \
     "city": "Gaeta"
   }'
 
-# Or generate a PDF directly (all demo reports)
-docker exec landiq-landiq-1 python src/run_gaeta_report.py    # Italy
-docker exec landiq-landiq-1 python src/run_batumi_report.py   # Georgia
-docker exec landiq-landiq-1 python src/run_tbilisi_report.py  # Georgia (different city)
-docker exec landiq-landiq-1 python src/run_warsaw_report.py   # Poland (generic connector)
+# Or generate PDF reports directly
+docker exec landiq-landiq-1 python src/run_gaeta_report.py    # Italy — Gaeta
+docker exec landiq-landiq-1 python src/run_batumi_report.py   # Georgia — Batumi
+docker exec landiq-landiq-1 python src/run_tbilisi_report.py  # Georgia — Tbilisi
+docker exec landiq-landiq-1 python src/run_warsaw_report.py   # Poland — Warsaw (generic)
 ```
 
 ### Without Docker
@@ -68,97 +70,118 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env  # add your GEMINI_API_KEY
 
-# Italy — Gaeta (ricettivo → residenziale, 900 mq)
-python src/run_gaeta_report.py        # → reports/gaeta_serapo_v1.pdf
-
-# Georgia — Batumi (commercial → touristic, 600 mq)
-python src/run_batumi_report.py       # → reports/batumi_ge_v1.pdf
-
-# Georgia — Tbilisi (office → residential, 450 mq)
-python src/run_tbilisi_report.py      # → reports/tbilisi_ge_v1.pdf
-
-# Poland — Warsaw (generic connector fallback, 800 mq)
-python src/run_warsaw_report.py       # → reports/warsaw_pl_v1.pdf
+# Let the agent run — each command produces a full PDF report
+python src/run_gaeta_report.py        # Italy — reports/gaeta_serapo_v1.pdf
+python src/run_batumi_report.py       # Georgia — reports/batumi_ge_v1.pdf
+python src/run_tbilisi_report.py      # Georgia — reports/tbilisi_ge_v1.pdf
+python src/run_warsaw_report.py       # Poland — reports/warsaw_pl_v1.pdf
 ```
+
+---
+
+## How the Agent Works
+
+```
+INPUT: address + sqm + country + intended use
+          │
+          ▼
+  ┌───────────────────┐
+  │  COUNTRY ROUTER   │ ← auto-selects IT/ES/PT/GE/generic connector
+  └───────┬───────────┘
+          │
+    ┌─────┴─────┐
+    ▼           ▼
+┌────────┐ ┌──────────┐
+│ MARKET │ │ URBANIST │  ← parallel data fetching
+│  DATA  │ │   DATA   │
+└───┬────┘ └────┬─────┘
+    │           │
+    ▼           ▼
+  ┌───────────────────┐
+  │ SCENARIO BUILDER  │ ← 3 development scenarios (residential/touristic/mixed)
+  └───────┬───────────┘
+          │
+    ┌─────┴─────┐
+    ▼           ▼
+┌────────┐ ┌──────────┐
+│  DCF   │ │  MONTE   │  ← financial modeling
+│ MODEL  │ │  CARLO   │
+│        │ │ (10K sim)│
+└───┬────┘ └────┬─────┘
+    │           │
+    ▼           ▼
+  ┌───────────────────┐
+  │   AI VERDICT      │ ← Gemini 2.5 Flash executive summary + GO/NO-GO
+  └───────┬───────────┘
+          │
+          ▼
+  ┌───────────────────┐
+  │  PDF REPORT       │ ← 15-20 pages, charts, tables, country-aware legal framework
+  └───────────────────┘
+```
+
+The agent is **fully autonomous** — no human intervention between input and output.
+Each country connector is a pluggable "tool" the agent uses to fetch local data.
 
 ---
 
 ## Countries Supported
 
-| Country | Connector | Market Data Source | Cities |
+| Country | Connector | Data Source | Cities |
 |---|---|---|---|
-| Italy | `ItalyConnector` | OMI Agenzia Entrate (official) | Roma, Milano, Napoli, Torino, Bologna, Firenze, Gaeta + all |
+| Italy | `ItalyConnector` | OMI Agenzia Entrate (official) | All Italian municipalities |
 | Spain | `SpainConnector` | INE + idealista.com (Q1-2025) | Madrid, Barcelona, Marbella, Valencia, Sevilla, Bilbao, Palma, Ibiza + 9 more |
 | Portugal | `PortugalConnector` | INE PT + Confidencial Imobiliario | Lisboa, Porto, Algarve, Cascais, Madeira, Azores + 13 more |
 | Georgia | `GeorgiaConnector` | myhome.ge benchmarks | Tbilisi, Batumi, Kutaisi, Kobuleti, Gudauri + 4 more |
-| Any other | `GenericConnector` | AI-estimated via Gemini | Any city worldwide (labeled as estimate) |
+| **Any other** | `GenericConnector` | **AI-estimated via Gemini** | **Any city worldwide** |
 
-**Want your country?** Check [open issues](https://github.com/Alessandro114/landiq/issues?q=is%3Aissue+is%3Aopen+label%3Aconnector) or send a PR — a connector is ~120 lines of Python.
+The generic connector means the agent works for **any country in the world** — it just gets better with a dedicated connector.
+
+**Want to add your country?** Check [open issues](https://github.com/Alessandro114/landiq/issues?q=is%3Aissue+is%3Aopen+label%3Aconnector) or send a PR — a connector is ~120 lines of Python.
 
 ---
 
-## Adding a New Country
+## Adding a New Country Connector (Agent Tool)
 
-LandIQ is built around a **connector pattern** — each country is a single file, ~100 lines.
-The core engine (DCF, Monte Carlo, PDF) is 100% country-agnostic.
+Each country connector is a "tool" the agent uses. The pattern:
 
 ```python
-# connectors/spain.py
+# connectors/montenegro.py
 from connectors.base import ConnectorBase, MarketData, UrbanisticData, register
 
 @register
-class SpainConnector(ConnectorBase):
-    country_code = "ES"
+class MontenegroConnector(ConnectorBase):
+    country_code = "ME"
     currency = "EUR"
     eur_rate = 1.0
 
     def fetch_market_data(self, city, address=None, use_type="residential"):
-        # Call Catastro API or scrape idealista.com
-        return MarketData(
-            city=city, country="ES",
-            price_per_sqm=2800.0,
-            price_min=2000.0, price_max=4000.0,
-            currency="EUR",
-            source="Catastro Spain",
-        )
+        return MarketData(city=city, country="ME", price_per_sqm=3500.0, ...)
 
     def fetch_urbanistic_data(self, city, address=None):
-        return UrbanisticData(
-            city=city, country="ES",
-            plan_type="PGOU",
-            buildable_ratio=2.0, max_height_m=20.0,
-            allowed_uses=["residential", "commercial", "mixed"],
-            constraints=["Verify with municipal planning office"],
-            source="LandIQ ES connector",
-        )
+        return UrbanisticData(city=city, country="ME", plan_type="DUP", ...)
 
     def default_assumptions(self):
-        return {
-            "sale_price_residential_eur_sqm": 2800.0,
-            "conversion_cost_eur_sqm": 900.0,
-            "capital_gains_tax_pct": 0.19,
-            "wacc": 0.07,
-            # full key list: see connectors/base.py
-        }
+        return {"capital_gains_tax_pct": 0.09, "wacc": 0.08, ...}
 ```
 
-That's it. Send a PR — we review country connectors within 48h.
+~120 lines. The agent automatically discovers and uses any registered connector.
 
 ---
 
 ## API Reference
 
-The FastAPI server exposes interactive docs at `http://localhost:8383/docs`
+The agent exposes a FastAPI server with interactive docs at `http://localhost:8383/docs`
 
 | Endpoint | Method | Description |
 |---|---|---|
 | `/health` | GET | Health check |
-| `/analyze` | POST | Full feasibility analysis (JSON) |
-| `/report/pdf` | POST | Generate and download PDF |
-| `/omi/{comune}` | GET | Raw OMI market data (Italy) |
-| `/puc/{comune}` | GET | Raw urban planning data (Italy) |
+| `/analyze` | POST | **Run the agent** — full autonomous analysis (JSON response) |
+| `/report/pdf` | POST | **Run the agent** — returns PDF report file |
+| `/omi/{comune}` | GET | Raw OMI market data (Italy only) |
+| `/puc/{comune}` | GET | Raw urban planning data (Italy only) |
 
-### Example: Batumi (Georgia)
+### Example: Agent analyzes a property in Batumi (Georgia)
 
 ```bash
 curl -X POST http://localhost:8383/analyze \
@@ -181,20 +204,22 @@ curl -X POST http://localhost:8383/analyze \
 
 ```
 landiq/
-├── connectors/               ← country connectors (add yours here)
+├── connectors/               ← agent tools (one per country)
 │   ├── base.py               ← abstract interface + auto-registry
 │   ├── italy.py              ← IT: OMI Agenzia Entrate + PGT/PRG
 │   ├── spain.py              ← ES: INE + idealista.com (17 cities)
 │   ├── portugal.py           ← PT: INE PT + Confidencial Imobiliario (19 cities)
 │   ├── georgia.py            ← GE: myhome.ge + Tbilisi/Batumi plans
-│   └── generic.py            ← fallback: AI estimates for any country
+│   └── generic.py            ← fallback: AI estimates for any country worldwide
 ├── src/
-│   ├── landiq_core.py        ← DCF engine, Monte Carlo, PDF, AI verdict
-│   ├── api.py                ← FastAPI server
+│   ├── landiq_core.py        ← agent brain: DCF, Monte Carlo, scenario builder, AI verdict
+│   ├── api.py                ← FastAPI server exposing the agent
 │   ├── run_gaeta_report.py   ← Italy demo
-│   └── run_batumi_report.py  ← Georgia demo
+│   ├── run_batumi_report.py  ← Georgia demo
+│   ├── run_tbilisi_report.py ← Georgia demo (Tbilisi)
+│   └── run_warsaw_report.py  ← Poland demo (generic connector)
 ├── scrapers/                 ← data scrapers (OMI, PGT, PVP, catasto)
-├── reports/                  ← generated PDFs
+├── reports/                  ← generated PDFs (agent output)
 ├── data/                     ← scraper cache
 ├── docker-compose.yml
 ├── Dockerfile
@@ -205,13 +230,13 @@ landiq/
 
 ## Hosted Version
 
-Don't want to self-host? **[get-scala.com/landiq-reports](https://get-scala.com/en/landiq-reports)**
+Don't want to self-host? **[get-scala.com/landiq-reports](https://get-scala.com/en/landiq-reports)** — the agent runs for you, pay per report.
 
 | Plan | Price | What you get |
 |---|---|---|
-| Basic | €199 | Location intel + 2 scenarios + executive summary |
-| Pro | €299 | + DCF 10y + risk matrix + incentives scan + AI render |
-| Enterprise | €499 | + pool/bubble study + 3 renders + strategy call + 24h delivery |
+| Basic | EUR 199 | Location intel + 2 scenarios + executive summary |
+| Pro | EUR 299 | + DCF 10y + risk matrix + incentives scan + AI render |
+| Enterprise | EUR 499 | + pool/bubble study + 3 renders + strategy call + 24h delivery |
 
 ---
 
@@ -219,8 +244,8 @@ Don't want to self-host? **[get-scala.com/landiq-reports](https://get-scala.com/
 
 1. Fork the repo
 2. Create `connectors/<your_country>.py` (copy `generic.py` as template)
-3. Add your country to the README table above
-4. Open a PR
+3. Add your country to the README table
+4. Open a PR — we review country connectors within 48h
 
 **Priority connectors wanted:** Montenegro, Bulgaria, UAE, UK, Germany, France, Greece, Croatia, Turkey.
 

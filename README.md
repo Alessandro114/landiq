@@ -27,6 +27,8 @@ You provide: **an address + sqm + intended use**. The agent autonomously:
 
 **What took consultants 2-3 weeks and ~$15K, the agent does in under 5 minutes.**
 
+**See it in action:** [Sample report — Italy (Gaeta)](reports/sample_italy_gaeta.pdf) | [Sample report — Georgia (Batumi)](reports/sample_georgia_batumi.pdf)
+
 ---
 
 ## Quick Start

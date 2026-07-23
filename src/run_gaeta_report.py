@@ -29,7 +29,7 @@ def main() -> int:
     out_path = Path(__file__).resolve().parent.parent / "reports" / "gaeta_serapo_v1.pdf"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    engine = LandIQEngine(gemini_api_key=os.getenv("GEMINI_API_KEY"))
+    engine = LandIQEngine()
 
     inp = FeasibilityInput(
         address="Via Marina di Serapo 12, Gaeta (LT)",
@@ -48,7 +48,6 @@ def main() -> int:
 
     print(f"[landiq] Running pipeline for: {inp.address}")
     print(f"[landiq] SQM: {inp.sqm}  current_use: {inp.current_use}  target: {inp.target_use}")
-    print(f"[landiq] Gemini key present: {bool(engine.gemini_api_key)}")
 
     t_run = time.time()
     report = engine.run(inp)

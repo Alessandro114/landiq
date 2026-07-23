@@ -1,8 +1,8 @@
 """
 LandIQ Generic Connector — fallback for unsupported countries.
 
-Uses Gemini (or rule-based fallback) to estimate market values and
-urban planning parameters from publicly available information.
+Uses the AI provider chain (Groq/Cerebras/Mistral, all free tier) to
+estimate market values. Falls back to World Bank indices if no AI available.
 
 This is the "community contribution starting point": copy this file,
 rename to your country, fill in real data sources.
@@ -59,14 +59,13 @@ _CGT: dict[str, float] = {
 
 
 class GenericConnector(ConnectorBase):
-    """Fallback connector. Estimates from World Bank indices + Gemini AI if available."""
+    """Fallback connector. Estimates from World Bank indices + AI provider chain."""
 
     currency = "EUR"
     eur_rate = 1.0  # all prices already converted to EUR in this connector
 
     def __init__(self, country_code: str = "XX") -> None:
         self.country_code = country_code.upper()
-        self._gemini_key = os.getenv("GEMINI_API_KEY")
 
     def fetch_market_data(
         self,
@@ -142,20 +141,14 @@ class GenericConnector(ConnectorBase):
         }
 
     def _ai_estimate_price(self, city: str, use_type: str) -> float:
-        """Quick Gemini estimate for unsupported markets. Falls back to €1800."""
-        if not self._gemini_key or not city:
+        """Quick AI estimate for unsupported markets. Falls back to €1800."""
+        if not city:
             return 1800.0
         try:
-            import google.generativeai as genai  # type: ignore
-            genai.configure(api_key=self._gemini_key)
-            model = genai.GenerativeModel("gemini-2.0-flash")
-            prompt = (
-                f"What is the approximate median residential real estate price per sqm in EUR "
-                f"for {city}, {self.country_code}? "
-                f"Reply with ONLY a number (no units, no text). Example: 2400"
-            )
-            resp = model.generate_content(prompt)
-            return float(resp.text.strip().replace(",", "."))
+            from src.ai_provider import estimate_price
+            result = estimate_price(city, self.country_code, use_type)
+            if result and 50 < result < 50000:  # sanity check
+                return result
         except Exception as e:
             logger.warning("GenericConnector AI estimate failed: %s", e)
-            return 1800.0
+        return 1800.0

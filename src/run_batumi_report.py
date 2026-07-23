@@ -25,7 +25,7 @@ def main() -> int:
     out_path = Path(__file__).resolve().parent.parent / "reports" / "batumi_ge_v1.pdf"
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    engine = LandIQEngine(gemini_api_key=os.getenv("GEMINI_API_KEY"))
+    engine = LandIQEngine()
 
     inp = FeasibilityInput(
         address="Rustaveli Avenue 45, Batumi, Adjara, Georgia",

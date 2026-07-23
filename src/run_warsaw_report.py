@@ -11,7 +11,7 @@ def main() -> int:
     t0 = time.time()
     out_path = Path(__file__).resolve().parent.parent / "reports" / "warsaw_pl_v1.pdf"
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    engine = LandIQEngine(gemini_api_key=os.getenv("GEMINI_API_KEY"))
+    engine = LandIQEngine()
     inp = FeasibilityInput(
         address="ul. Marszałkowska 82, Warszawa, Poland",
         sqm=800,

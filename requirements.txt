@@ -1,4 +1,4 @@
-# LandIQ MVP — Python dependencies
+# LandIQ Agent — Python dependencies
 # Python 3.12+
 
 # Web framework
@@ -22,11 +22,12 @@ lxml>=5.2
 pypdf2>=3.0
 pdfplumber>=0.11
 
-# LLM (primary + fallback)
-google-generativeai>=0.8
-
 # Schema / validation
 pydantic>=2.8
 
 # Dev / tooling
 python-dotenv>=1.0
+
+# NOTE: No AI SDK dependency required.
+# The agent calls Groq/Cerebras/Mistral via standard HTTP (urllib).
+# Zero external AI dependencies = smaller Docker image, no vendor lock-in.

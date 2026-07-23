@@ -12,7 +12,7 @@ Give the agent a property address. It autonomously:
   8. Produces a 15-20 page PDF report — no human in the loop
 
 Usage:
-    agent = LandIQEngine(gemini_api_key="...")
+    agent = LandIQEngine()
     inp = FeasibilityInput(
         address="Rustaveli 45, Batumi",
         sqm=600, country="GE", city="Batumi",
@@ -207,12 +207,12 @@ class LandIQEngine:
 
     def __init__(
         self,
-        gemini_api_key: str | None = None,
+        gemini_api_key: str | None = None,  # DEPRECATED — use GROQ_API_KEY or LANDIQ_AI_PROVIDER
         cache_dir: Path | str = Path("data/cache"),
         wacc: float = DEFAULT_WACC,
         connector=None,  # ConnectorBase instance; auto-detected if None
     ) -> None:
-        self.gemini_api_key = gemini_api_key or os.getenv("GEMINI_API_KEY")
+        # gemini_api_key kept for backward compat but ignored — AI now via ai_provider.py
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.wacc = wacc
@@ -231,6 +231,63 @@ class LandIQEngine:
         import connectors.georgia  # noqa: F401
         from connectors.base import get_connector
         return get_connector(country)
+
+    def _observe_data_quality(
+        self,
+        market: dict[str, Any],
+        urbanistic: dict[str, Any],
+        plan: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Observe step: evaluate data quality from the research phase.
+        Returns a score (0-10) and list of issues found."""
+        score = 10
+        issues: list[str] = []
+
+        # Market data checks
+        price = market.get("price_per_sqm", 0)
+        if not price or price <= 0:
+            score -= 4
+            issues.append("no_market_price")
+        elif market.get("raw", {}).get("estimated"):
+            score -= 2
+            issues.append("market_price_is_ai_estimate")
+
+        zones = market.get("zones", [])
+        if not zones:
+            score -= 1
+            issues.append("no_zone_data")
+
+        # Urbanistic data checks
+        if not urbanistic.get("plan_type") or urbanistic.get("plan_type") == "Unknown (no connector)":
+            score -= 2
+            issues.append("no_urban_plan")
+
+        constraints = urbanistic.get("constraints", [])
+        if not constraints:
+            score -= 1
+            issues.append("no_constraints_data")
+
+        # Connector type check
+        if not plan.get("has_dedicated_connector"):
+            score -= 1
+            issues.append("using_generic_connector")
+
+        return {"score": max(0, score), "issues": issues}
+
+    @staticmethod
+    def _connector_to_dict(md) -> dict[str, Any]:
+        """Convert a MarketData dataclass to dict."""
+        return {
+            "city": md.city,
+            "country": md.country,
+            "price_per_sqm": md.price_per_sqm,
+            "price_min": md.price_min,
+            "price_max": md.price_max,
+            "currency": md.currency,
+            "source": md.source,
+            "zones": md.zones,
+            "raw": md.raw,
+        }
 
     def build_assumptions(self, market_data: dict[str, Any], country: str = "IT") -> dict[str, Any]:
         """Build location-specific assumptions from connector defaults + live market data.
@@ -996,26 +1053,22 @@ class LandIQEngine:
         urbanistic: dict[str, Any],
         market: dict[str, Any],
     ) -> str:
-        """Call Gemini 2.5 Flash → narrative verdict. Rule-based fallback if not available."""
-        # Try Gemini first.
-        if self.gemini_api_key:
-            try:
-                import google.generativeai as genai  # type: ignore
+        """Call AI provider chain → narrative verdict. Rule-based fallback if unavailable."""
+        from src.ai_provider import call_llm
 
-                genai.configure(api_key=self.gemini_api_key)
-                model = genai.GenerativeModel("gemini-2.5-flash")
-
-                prompt = self._build_gemini_prompt(inp, scenarios, mc_results, urbanistic, market)
-                resp = model.generate_content(prompt)
-                text = (resp.text or "").strip()
-                if text:
-                    return text
-            except Exception as e:
-                print(f"[landiq] Gemini call failed: {e} — using rule-based fallback", file=sys.stderr)
+        prompt = self._build_verdict_prompt(inp, scenarios, mc_results, urbanistic, market)
+        system = (
+            "You are a senior real estate investment advisor. "
+            "Write concise, technically rigorous executive summaries. "
+            "No bullet points. No hedging. Direct, data-driven analysis."
+        )
+        text = call_llm(prompt, system=system, max_tokens=500, temperature=0.3)
+        if text:
+            return text
 
         return self._rule_based_verdict(inp, scenarios, mc_results)
 
-    def _build_gemini_prompt(
+    def _build_verdict_prompt(
         self,
         inp: FeasibilityInput,
         scenarios: list[ScenarioResult],
@@ -1982,26 +2035,65 @@ class LandIQEngine:
     # --- ORCHESTRATION -------------------------------------------------------
 
     def run(self, inp: FeasibilityInput) -> FeasibilityReport:
-        """End-to-end pipeline: urbanistic → market → volumetry → scenarios → MC → verdict.
+        """Autonomous agent loop: plan → research → observe → analyze → verdict.
 
-        Works for any country via the connector pattern.
-        country="IT" (default) = Italy (OMI + PGT/PRG), backward-compatible.
-        Other countries auto-select the appropriate connector.
+        The agent:
+        1. PLAN: identifies country, selects connector, determines data needs
+        2. RESEARCH: fetches market + urbanistic data via connector tools
+        3. OBSERVE: evaluates data quality — retries with fallback if insufficient
+        4. ANALYZE: builds scenarios, runs DCF + Monte Carlo
+        5. VERDICT: generates AI-powered executive summary + GO/NO-GO
         """
         country = (inp.country or "IT").upper()
-        # city: use explicit city field, fall back to Italian comune
         city = inp.city or inp.comune or "Milano"
 
+        # ── STEP 1: PLAN ─────────────────────────────────────────
+        conn = self._get_connector(country)
+        plan = {
+            "country": country,
+            "city": city,
+            "connector": conn.__class__.__name__,
+            "has_dedicated_connector": conn.__class__.__name__ != "GenericConnector",
+        }
+        print(f"[agent] PLAN: {city}, {country} → {plan['connector']}", file=sys.stderr)
+
+        # ── STEP 2: RESEARCH ─────────────────────────────────────
         urbanistic = self.fetch_urbanistic_data(city, country=country)
         market = self.fetch_market_data(city, country=country)
 
-        # Build location-specific assumptions from connector defaults + live market data
+        # ── STEP 3: OBSERVE — evaluate data quality ──────────────
+        data_quality = self._observe_data_quality(market, urbanistic, plan)
+        print(f"[agent] OBSERVE: quality={data_quality['score']}/10, issues={data_quality['issues']}", file=sys.stderr)
+
+        # If data is poor and we used a dedicated connector, retry with generic
+        if data_quality["score"] < 4 and plan["has_dedicated_connector"]:
+            print(f"[agent] RETRY: dedicated connector data poor — trying generic fallback", file=sys.stderr)
+            from connectors.generic import GenericConnector
+            fallback = GenericConnector(country)
+            market_fb = self._connector_to_dict(fallback.fetch_market_data(city))
+            # Merge: keep urbanistic (country-specific is always better), update market if fallback is richer
+            if market_fb.get("price_per_sqm", 0) > 0:
+                market["price_per_sqm"] = market.get("price_per_sqm") or market_fb["price_per_sqm"]
+                if not market.get("zones"):
+                    market["zones"] = market_fb.get("zones", [])
+                market["source"] = f"{market.get('source', '')} + GenericConnector fallback"
+
+        # If market price is still zero/missing, use a safe default
+        if not market.get("price_per_sqm") or market["price_per_sqm"] <= 0:
+            market["price_per_sqm"] = 1800.0
+            market["source"] = market.get("source", "") + " [default: no data available]"
+            print(f"[agent] OBSERVE: no market price found — using €1800 default", file=sys.stderr)
+
+        # ── STEP 4: ANALYZE ──────────────────────────────────────
         assumptions = self.build_assumptions(market, country=country)
         # Higher contingency if planning situation is uncertain
         if urbanistic.get("variante_in_corso") or not urbanistic.get("source"):
             assumptions["contingency_pct"] = max(assumptions.get("contingency_pct", 0.10), 0.12)
+        # Higher contingency if data quality is low
+        if data_quality["score"] < 6:
+            assumptions["contingency_pct"] = max(assumptions.get("contingency_pct", 0.10), 0.15)
+            print(f"[agent] ANALYZE: low data quality → contingency raised to {assumptions['contingency_pct']:.0%}", file=sys.stderr)
 
-        # Pick the first zone code from urbanistic data or fallback
         zones = urbanistic.get("zones", [])
         zone_code = zones[0].get("code", "B") if zones else "B"
 
@@ -2016,7 +2108,9 @@ class LandIQEngine:
         scenarios = self.build_scenarios(inp, assumptions=assumptions)
         mc = self.monte_carlo(scenarios, n_runs=10_000, target_irr=self.DEFAULT_TARGET_IRR, assumptions=assumptions)
 
+        # ── STEP 5: VERDICT ──────────────────────────────────────
         verdict = self.generate_ai_verdict(inp, scenarios, mc, urbanistic, market)
+        print(f"[agent] VERDICT: {len(verdict)} chars, {len(scenarios)} scenarios analyzed", file=sys.stderr)
 
         # Recommended scenario: best risk-adjusted NPV
         ranked = sorted(scenarios, key=lambda s: s.npv / (s.risk_score + 1), reverse=True)

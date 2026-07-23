@@ -1,29 +1,26 @@
 """
-LandIQ Core Engine — MVP
+LandIQ — Autonomous AI Agent for Real Estate Feasibility Analysis.
 
-Given a real estate asset (terreno o immobile esistente in Italia) the engine:
-  1. fetches OMI market values (Agenzia Entrate)
-  2. fetches/OCRs PUC or PRG from the municipality
-  3. computes buildable volume given urbanistic constraints
-  4. builds N development scenarios (residential / touristic / mixed)
-  5. runs DCF + Monte Carlo sensitivity
-  6. generates an AI verdict via Gemini 2.5 Flash (rule-based fallback)
-  7. exports a 15-20 page PDF report
-
-First real case: Gaeta (LT), loc. Serapo — struttura ricettiva 900 mq.
+Give the agent a property address. It autonomously:
+  1. Identifies the country → selects the right data connector
+  2. Researches market data (prices, benchmarks, comparable sales)
+  3. Researches urbanistic constraints (zoning, FAR, height limits, permits)
+  4. Builds 3 investment scenarios (residential / touristic / status-quo)
+  5. Runs DCF analysis with sensitivity on key variables
+  6. Runs Monte Carlo simulation (10,000 iterations) → P5/P50/P95
+  7. Generates an AI-powered executive summary + GO/NO-GO verdict
+  8. Produces a 15-20 page PDF report — no human in the loop
 
 Usage:
-    engine = LandIQEngine(gemini_api_key="...")
+    agent = LandIQEngine(gemini_api_key="...")
     inp = FeasibilityInput(
-        address="Via Marina di Serapo 12, Gaeta LT",
-        sqm=900,
-        current_use="ricettivo_alberghiero",
-        target_use="residenziale",
-        budget=1_500_000,
-        horizon_years=5,
+        address="Rustaveli 45, Batumi",
+        sqm=600, country="GE", city="Batumi",
+        current_use="commercial", target_use="touristic",
+        budget=900_000, horizon_years=5,
     )
-    report = engine.run(inp)
-    engine.export_pdf(report, "reports/gaeta_serapo_v1.pdf")
+    report = agent.run(inp)    # fully autonomous
+    agent.export_pdf(report, "reports/batumi_ge.pdf")
 """
 
 from __future__ import annotations
@@ -51,7 +48,7 @@ _PKG_ROOT = Path(__file__).resolve().parent.parent
 if str(_PKG_ROOT) not in sys.path:
     sys.path.insert(0, str(_PKG_ROOT))
 
-__version__ = "0.2.0-mvp"
+__version__ = "0.3.0"
 
 # -----------------------------------------------------------------------------
 # DATA CLASSES

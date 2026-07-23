@@ -1,14 +1,15 @@
 """
-LandIQ Engine API — FastAPI server for feasibility analysis.
+LandIQ Agent API — FastAPI server exposing the autonomous feasibility agent.
 
 Endpoints:
     GET  /health              — health check
-    POST /analyze             — run full feasibility analysis
-    POST /report/pdf          — generate PDF report
-    GET  /omi/{comune}        — get OMI market data
-    GET  /vincoli/{lat}/{lng} — get environmental/landscape constraints
+    POST /analyze             — run the agent: full autonomous feasibility analysis
+    POST /report/pdf          — agent generates and returns PDF report
+    GET  /omi/{comune}        — raw OMI market data (Italy)
+    GET  /vincoli/{lat}/{lng} — raw environmental/landscape constraints
 
-Runs on port 8383 behind nginx on production.
+The agent autonomously selects the right country connector, fetches market
+and urbanistic data, runs DCF + Monte Carlo, and produces a GO/NO-GO verdict.
 """
 
 from __future__ import annotations
@@ -37,8 +38,8 @@ from src.landiq_core import (
 )
 
 app = FastAPI(
-    title="LandIQ Engine API",
-    description="AI Feasibility Analysis for Real Estate — any country",
+    title="LandIQ Agent API",
+    description="Autonomous AI Agent for Real Estate Feasibility — give it an address, get a GO/NO-GO verdict",
     version=__version__,
 )
 

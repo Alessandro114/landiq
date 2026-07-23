@@ -37,7 +37,8 @@ You provide: **an address + sqm + intended use**. The agent autonomously:
 git clone https://github.com/Alessandro114/landiq
 cd landiq
 cp .env.example .env
-# Add your Gemini API key to .env (free at https://aistudio.google.com)
+# Add ANY AI provider key (Groq, Cerebras, Mistral, OpenAI — all free tiers work)
+# Or use Ollama for fully local, zero-cloud operation
 
 docker compose up -d
 
@@ -68,7 +69,7 @@ git clone https://github.com/Alessandro114/landiq
 cd landiq
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env  # add your GEMINI_API_KEY
+cp .env.example .env  # add any AI key (Groq/Cerebras/Mistral/OpenAI) or use Ollama
 
 # Let the agent run — each command produces a full PDF report
 python src/run_gaeta_report.py        # Italy — reports/gaeta_serapo_v1.pdf
@@ -76,6 +77,24 @@ python src/run_batumi_report.py       # Georgia — reports/batumi_ge_v1.pdf
 python src/run_tbilisi_report.py      # Georgia — reports/tbilisi_ge_v1.pdf
 python src/run_warsaw_report.py       # Poland — reports/warsaw_pl_v1.pdf
 ```
+
+---
+
+## AI Provider — Bring Your Own Key
+
+LandIQ has **zero vendor lock-in**. Use any AI provider you want:
+
+| Provider | Free tier | Speed | How to get a key |
+|---|---|---|---|
+| **Groq** | 1,000 req/day | ~0.5s | [console.groq.com](https://console.groq.com) |
+| **Cerebras** | 1M tokens/day | ~1s | [cloud.cerebras.ai](https://cloud.cerebras.ai) |
+| **Mistral** | ~1B tokens/month | ~1s | [console.mistral.ai](https://console.mistral.ai) |
+| **OpenAI** | paid only | ~2s | [platform.openai.com](https://platform.openai.com) |
+| **Ollama** | unlimited (local) | varies | [ollama.com](https://ollama.com) — runs on your machine, no cloud |
+
+Set one key in `.env` and the agent uses it. No key from us, no hidden costs, no telemetry.
+
+The agent also works **without any AI key** — it falls back to a deterministic rule-based verdict (still produces the full PDF with DCF + Monte Carlo, just no narrative summary).
 
 ---
 

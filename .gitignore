@@ -15,6 +15,7 @@ build/
 
 # Generated output (don't commit client reports)
 reports/*.pdf
+!reports/sample_*.pdf
 data/omi_cache/
 data/pgt_cache/
 data/cache/

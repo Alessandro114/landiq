@@ -6,6 +6,9 @@
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://python.org)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](Dockerfile)
+[![Countries](https://img.shields.io/badge/countries-4%20connectors%20%2B%20generic-green.svg)](#countries-supported)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Good First Issues](https://img.shields.io/github/issues/Alessandro114/landiq/good%20first%20issue?color=7057ff&label=good%20first%20issues)](https://github.com/Alessandro114/landiq/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
 ---
 
@@ -82,15 +85,15 @@ python src/run_warsaw_report.py       # → reports/warsaw_pl_v1.pdf
 
 ## Countries Supported
 
-| Country | Connector | Market Data | Urban Planning |
+| Country | Connector | Market Data Source | Cities |
 |---|---|---|---|
-| 🇮🇹 Italy | `ItalyConnector` | OMI Agenzia Entrate (official) | PGT/PRG/PUC municipal plans |
-| 🇬🇪 Georgia | `GeorgiaConnector` | myhome.ge benchmarks | Tbilisi/Batumi city plans |
-| 🌍 Any other | `GenericConnector` | AI-estimated via Gemini | Generic zoning template |
+| Italy | `ItalyConnector` | OMI Agenzia Entrate (official) | Roma, Milano, Napoli, Torino, Bologna, Firenze, Gaeta + all |
+| Spain | `SpainConnector` | INE + idealista.com (Q1-2025) | Madrid, Barcelona, Marbella, Valencia, Sevilla, Bilbao, Palma, Ibiza + 9 more |
+| Portugal | `PortugalConnector` | INE PT + Confidencial Imobiliario | Lisboa, Porto, Algarve, Cascais, Madeira, Azores + 13 more |
+| Georgia | `GeorgiaConnector` | myhome.ge benchmarks | Tbilisi, Batumi, Kutaisi, Kobuleti, Gudauri + 4 more |
+| Any other | `GenericConnector` | AI-estimated via Gemini | Any city worldwide (labeled as estimate) |
 
-**Cities with full support:** Gaeta, Roma, Milano, Napoli, Torino, Bologna, Firenze, Venezia, Bergamo (IT) · Tbilisi, Batumi, Kutaisi, Kobuleti, Borjomi (GE)
-
-**Any other country** runs via `GenericConnector` with AI-estimated prices. The report clearly labels the data as estimated and links to `github.com/Alessandro114/landiq/connectors` to contribute real data.
+**Want your country?** Check [open issues](https://github.com/Alessandro114/landiq/issues?q=is%3Aissue+is%3Aopen+label%3Aconnector) or send a PR — a connector is ~120 lines of Python.
 
 ---
 
@@ -181,6 +184,8 @@ landiq/
 ├── connectors/               ← country connectors (add yours here)
 │   ├── base.py               ← abstract interface + auto-registry
 │   ├── italy.py              ← IT: OMI Agenzia Entrate + PGT/PRG
+│   ├── spain.py              ← ES: INE + idealista.com (17 cities)
+│   ├── portugal.py           ← PT: INE PT + Confidencial Imobiliario (19 cities)
 │   ├── georgia.py            ← GE: myhome.ge + Tbilisi/Batumi plans
 │   └── generic.py            ← fallback: AI estimates for any country
 ├── src/
@@ -200,12 +205,13 @@ landiq/
 
 ## Hosted Version
 
-Don't want to self-host? **[landiq.get-scala.com](https://landiq.get-scala.com)**
+Don't want to self-host? **[get-scala.com/landiq-reports](https://get-scala.com/en/landiq-reports)**
 
 | Plan | Price | What you get |
 |---|---|---|
-| Pay-per-report | €499 | Single property, instant PDF, no setup |
-| Dev Pro | €499/month | Unlimited reports + deal sourcing alerts via WhatsApp |
+| Basic | €199 | Location intel + 2 scenarios + executive summary |
+| Pro | €299 | + DCF 10y + risk matrix + incentives scan + AI render |
+| Enterprise | €499 | + pool/bubble study + 3 renders + strategy call + 24h delivery |
 
 ---
 
@@ -216,7 +222,7 @@ Don't want to self-host? **[landiq.get-scala.com](https://landiq.get-scala.com)*
 3. Add your country to the README table above
 4. Open a PR
 
-**Priority connectors wanted:** Spain, Portugal, Montenegro, Bulgaria, UAE, UK, Germany.
+**Priority connectors wanted:** Montenegro, Bulgaria, UAE, UK, Germany, France, Greece, Croatia, Turkey.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 

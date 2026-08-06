@@ -21,9 +21,24 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
+
+# ─── API Key Authentication ──────────────────────────────
+# Set LANDIQ_API_KEY env var to require authentication.
+# If not set, the API runs without auth (development mode).
+
+_api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+def _verify_api_key(api_key: str | None = Security(_api_key_header)) -> str | None:
+    expected = os.getenv("LANDIQ_API_KEY")
+    if not expected:
+        return None  # no key configured = open access (dev mode)
+    if not api_key or api_key != expected:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+    return api_key
 
 # Ensure project root is importable
 _PKG_ROOT = Path(__file__).resolve().parent.parent
@@ -43,7 +58,7 @@ app = FastAPI(
     version=__version__,
 )
 
-# Singleton engine (reuses cache dir, Gemini key from env)
+# Singleton engine (reuses cache dir, AI provider key from env)
 _engine: LandIQEngine | None = None
 
 
@@ -149,7 +164,7 @@ async def health():
 
 
 @app.post("/analyze", response_model=AnalyzeResponse)
-async def analyze(request: AnalyzeRequest):
+async def analyze(request: AnalyzeRequest, _key: str | None = Depends(_verify_api_key)):
     """Run full feasibility analysis for a land parcel or building."""
     engine = get_engine()
 
@@ -229,7 +244,7 @@ async def analyze(request: AnalyzeRequest):
 
 
 @app.post("/report/pdf")
-async def generate_pdf(request: ReportRequest):
+async def generate_pdf(request: ReportRequest, _key: str | None = Depends(_verify_api_key)):
     """Generate PDF report and return as downloadable file."""
     engine = get_engine()
 

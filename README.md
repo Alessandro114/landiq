@@ -22,7 +22,7 @@ You provide: **an address + sqm + intended use**. The agent autonomously:
 4. **Builds 3 investment scenarios** — residential, touristic/mixed, status-quo refurb
 5. **Runs DCF analysis** — NPV + IRR for each scenario over your investment horizon
 6. **Runs Monte Carlo simulation** — 10,000 iterations, P5/P50/P95 distribution, tornado chart
-7. **Generates AI verdict** — 2-paragraph executive summary via Gemini 2.5 Flash with GO/NO-GO
+7. **Generates AI verdict** — 2-paragraph executive summary via AI provider chain (Groq/Cerebras/Mistral/OpenAI) with GO/NO-GO
 8. **Exports a 15-20 page PDF report** — professional, investor-ready, with charts and tables
 
 **What took consultants 2-3 weeks and ~$15K, the agent does in under 5 minutes.**
@@ -132,7 +132,7 @@ INPUT: address + sqm + country + intended use
     │           │
     ▼           ▼
   ┌───────────────────┐
-  │   AI VERDICT      │ ← Gemini 2.5 Flash executive summary + GO/NO-GO
+  │   AI VERDICT      │ ← AI provider chain executive summary + GO/NO-GO
   └───────┬───────────┘
           │
           ▼
@@ -154,7 +154,7 @@ Each country connector is a pluggable "tool" the agent uses to fetch local data.
 | Spain | `SpainConnector` | INE + idealista.com (Q1-2025) | Madrid, Barcelona, Marbella, Valencia, Sevilla, Bilbao, Palma, Ibiza + 9 more |
 | Portugal | `PortugalConnector` | INE PT + Confidencial Imobiliario | Lisboa, Porto, Algarve, Cascais, Madeira, Azores + 13 more |
 | Georgia | `GeorgiaConnector` | myhome.ge benchmarks | Tbilisi, Batumi, Kutaisi, Kobuleti, Gudauri + 4 more |
-| **Any other** | `GenericConnector` | **AI-estimated via Gemini** | **Any city worldwide** |
+| **Any other** | `GenericConnector` | **AI-estimated via provider chain** | **Any city worldwide** |
 
 The generic connector means the agent works for **any country in the world** — it just gets better with a dedicated connector.
 

@@ -41,7 +41,7 @@ def main() -> int:
         comune="Gaeta",
         provincia="LT",
         cap="04024",
-        client_name="Demo Cliente (via Danny)",
+        client_name="LandIQ Demo",
         parcel_area_sqm=1300,
         notes="Struttura ricettiva 900 mq fronte mare, ipotesi cambio d'uso residenziale",
     )

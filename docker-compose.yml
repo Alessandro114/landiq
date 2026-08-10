@@ -6,7 +6,6 @@ services:
     ports:
       - "8383:8000"
     environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
       - LANDIQ_CACHE_DIR=/app/data/cache
     volumes:
       - ./reports:/app/reports        # generated PDFs persist on host

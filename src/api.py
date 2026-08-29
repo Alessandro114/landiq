@@ -35,7 +35,14 @@ _api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 def _verify_api_key(api_key: str | None = Security(_api_key_header)) -> str | None:
     expected = os.getenv("LANDIQ_API_KEY")
     if not expected:
-        return None  # no key configured = open access (dev mode)
+        # Prima qui c'era `return None  # dev mode`: una chiave assente apriva
+        # l'API a chiunque, in silenzio. Ora una configurazione mancante e un
+        # errore, non una modalita. /health resta libero apposta, cosi
+        # l'healthcheck del container continua a funzionare.
+        raise HTTPException(
+            status_code=503,
+            detail="LANDIQ_API_KEY non configurata: endpoint non disponibile",
+        )
     if not api_key or api_key != expected:
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
     return api_key
@@ -285,7 +292,8 @@ async def generate_pdf(request: ReportRequest, _key: str | None = Depends(_verif
 
 
 @app.get("/omi/{comune}")
-async def get_omi(comune: str, provincia: str = "MI", zona: Optional[str] = None):
+async def get_omi(comune: str, provincia: str = "MI", zona: Optional[str] = None,
+                  _key: str | None = Depends(_verify_api_key)):
     """Get OMI market data for a municipality."""
     engine = get_engine()
 
@@ -297,7 +305,8 @@ async def get_omi(comune: str, provincia: str = "MI", zona: Optional[str] = None
 
 
 @app.get("/vincoli/{lat}/{lng}")
-async def get_vincoli(lat: float, lng: float):
+async def get_vincoli(lat: float, lng: float,
+                      _key: str | None = Depends(_verify_api_key)):
     """Get environmental/landscape constraints for a location."""
     try:
         from scrapers import vincoli_sitap_pai as vincoli
@@ -316,7 +325,8 @@ async def get_vincoli(lat: float, lng: float):
 
 
 @app.get("/puc/{comune}")
-async def get_puc(comune: str):
+async def get_puc(comune: str,
+                  _key: str | None = Depends(_verify_api_key)):
     """Get urbanistic plan data for a municipality."""
     engine = get_engine()
     try:

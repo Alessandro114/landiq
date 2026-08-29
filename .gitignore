@@ -34,3 +34,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# 29/08/2026: le copie di sicurezza restano sul filesystem, non in repository.
+*.bak-*
+*.bak.*

@@ -32,7 +32,7 @@ def main() -> int:
     engine = LandIQEngine()
 
     inp = FeasibilityInput(
-        address="Via Marina di Serapo 12, Gaeta (LT)",
+        address="Via Esempio 1, Gaeta (LT)",
         sqm=900,
         current_use="ricettivo_alberghiero",
         target_use="residenziale",
@@ -41,9 +41,9 @@ def main() -> int:
         comune="Gaeta",
         provincia="LT",
         cap="04024",
-        client_name="LandIQ Demo",
+        client_name="Cliente Demo S.r.l.",
         parcel_area_sqm=1300,
-        notes="Struttura ricettiva 900 mq fronte mare, ipotesi cambio d'uso residenziale",
+        notes="Struttura ricettiva 900 mq fronte mare (dato fittizio), ipotesi cambio d'uso residenziale",
     )
 
     print(f"[landiq] Running pipeline for: {inp.address}")

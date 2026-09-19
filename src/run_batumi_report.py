@@ -28,7 +28,7 @@ def main() -> int:
     engine = LandIQEngine()
 
     inp = FeasibilityInput(
-        address="Rustaveli Avenue 45, Batumi, Adjara, Georgia",
+        address="Example Street 1, Batumi, Adjara, Georgia",
         sqm=600,
         current_use="commercial",
         target_use="touristic",
@@ -37,8 +37,8 @@ def main() -> int:
         country="GE",
         city="Batumi",
         parcel_area_sqm=850,
-        client_name="LandIQ Demo (Batumi)",
-        notes="Mixed-use building on Rustaveli Ave, conversion to boutique hotel / serviced apartments",
+        client_name="Demo Client Ltd.",
+        notes="Mixed-use building (fictitious address), conversion to boutique hotel / serviced apartments",
     )
 
     print(f"[landiq] Running pipeline for: {inp.address}")

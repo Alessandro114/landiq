@@ -13,7 +13,7 @@ def main() -> int:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     engine = LandIQEngine()
     inp = FeasibilityInput(
-        address="ul. Marszałkowska 82, Warszawa, Poland",
+        address="ul. Przykładowa 1, Warszawa, Poland",
         sqm=800,
         current_use="commercial",
         target_use="residential",
@@ -22,7 +22,7 @@ def main() -> int:
         country="PL",
         city="Warsaw",
         parcel_area_sqm=1000,
-        client_name="LandIQ Demo (Warsaw)",
+        client_name="Demo Client Sp. z o.o.",
         notes="High-street commercial unit conversion to apartments in Warsaw city centre",
     )
     print(f"[landiq] {inp.address} | {inp.country} | {inp.city}")

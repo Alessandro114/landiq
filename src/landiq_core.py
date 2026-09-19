@@ -2158,7 +2158,7 @@ class LandIQEngine:
 
 if __name__ == "__main__":
     demo = FeasibilityInput(
-        address="Via Marina di Serapo 12, Gaeta LT",
+        address="Via Esempio 1, Gaeta LT",
         sqm=900,
         current_use="ricettivo_alberghiero",
         target_use="residenziale",

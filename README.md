@@ -48,7 +48,7 @@ docker compose up -d
 curl -X POST http://localhost:8383/analyze \
   -H "Content-Type: application/json" \
   -d '{
-    "address": "Via Marina di Serapo 12, Gaeta, Italy",
+    "address": "Via Esempio 1, Gaeta, Italy",
     "sqm": 900,
     "current_use": "ricettivo_alberghiero",
     "target_use": "residenziale",

@@ -22,7 +22,7 @@ def main() -> int:
         country="PL",
         city="Warsaw",
         parcel_area_sqm=1000,
-        client_name="LandIQ Demo (Warsaw)",
+        client_name="Demo Client Sp. z o.o.",
         notes="High-street commercial unit conversion to apartments in Warsaw city centre",
     )
     print(f"[landiq] {inp.address} | {inp.country} | {inp.city}")

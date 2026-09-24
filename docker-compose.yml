@@ -4,7 +4,8 @@ services:
   landiq:
     build: .
     ports:
-      - "8383:8000"
+      - "127.0.0.1:8383:8000"
+    env_file: .env
     environment:
       - LANDIQ_CACHE_DIR=/app/data/cache
     volumes:

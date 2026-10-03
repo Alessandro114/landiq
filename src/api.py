@@ -334,3 +334,88 @@ async def get_puc(comune: str,
         return {"status": "ok", "comune": comune, "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"PUC fetch failed: {e}")
+
+
+# ─── Stripe subscription endpoints ───────────────────────────────────────────
+
+_LANDIQ_PLANS = [
+    {
+        "id": "growth",
+        "name": "LandIQ Growth",
+        "price_eur": 199,
+        "analyses_per_month": 50,
+        "features": ["Land feasibility analysis", "GO/NO-GO verdict", "Basic PDF report"],
+        "stripe_product_id": os.getenv("LANDIQ_STRIPE_GROWTH_PRODUCT_ID", "prod_UPEflKHUmCs3Ii"),
+        "stripe_price_id": os.getenv("LANDIQ_STRIPE_GROWTH_PRICE_ID", "price_1TQQBjEOck6HG7XlnQ8VaZzu"),
+    },
+    {
+        "id": "pro",
+        "name": "LandIQ Pro",
+        "price_eur": 299,
+        "analyses_per_month": 200,
+        "features": ["Everything in Growth", "Full PDF reports", "API access", "Priority support"],
+        "stripe_product_id": os.getenv("LANDIQ_STRIPE_PRO_PRODUCT_ID", "prod_VCUZMO970YmvAw"),
+        "stripe_price_id": os.getenv("LANDIQ_STRIPE_PRO_PRICE_ID", "price_1UC5a2EOck6HG7Xlvqdo1KjZ"),
+    },
+    {
+        "id": "scale",
+        "name": "LandIQ Scale",
+        "price_eur": 499,
+        "analyses_per_month": None,  # unlimited
+        "features": ["Everything in Pro", "Unlimited analyses", "White-label reports", "Dedicated support"],
+        "stripe_product_id": os.getenv("LANDIQ_STRIPE_SCALE_PRODUCT_ID", "prod_UPEgb1c0RzsCxz"),
+        "stripe_price_id": os.getenv("LANDIQ_STRIPE_SCALE_PRICE_ID", "price_1TQQCrEOck6HG7XlmkD4GdJn"),
+    },
+]
+
+
+@app.get("/plans")
+async def list_plans():
+    """Return available subscription plans with Stripe price IDs."""
+    return {"status": "ok", "plans": _LANDIQ_PLANS}
+
+
+class CheckoutRequest(BaseModel):
+    plan_id: str = Field(..., description="Plan id: growth | pro | scale")
+    success_url: str = Field(default="https://landiq.get-scala.com/success")
+    cancel_url: str = Field(default="https://landiq.get-scala.com/pricing")
+
+
+@app.post("/checkout")
+async def create_checkout(req: CheckoutRequest):
+    """Create a Stripe Checkout session for the given plan. Returns the session URL."""
+    stripe_key = os.getenv("STRIPE_SECRET_KEY")
+    if not stripe_key:
+        raise HTTPException(status_code=503, detail="Stripe not configured")
+
+    plan = next((p for p in _LANDIQ_PLANS if p["id"] == req.plan_id), None)
+    if not plan:
+        raise HTTPException(status_code=400, detail=f"Unknown plan '{req.plan_id}'")
+
+    try:
+        import urllib.request
+        import urllib.parse
+        import json as _json
+
+        payload = urllib.parse.urlencode({
+            "mode": "subscription",
+            "line_items[0][price]": plan["stripe_price_id"],
+            "line_items[0][quantity]": "1",
+            "success_url": req.success_url + "?session_id={CHECKOUT_SESSION_ID}",
+            "cancel_url": req.cancel_url,
+        }).encode()
+
+        request = urllib.request.Request(
+            "https://api.stripe.com/v1/checkout/sessions",
+            data=payload,
+            headers={
+                "Authorization": f"Bearer {stripe_key}",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(request) as resp:
+            session = _json.loads(resp.read())
+        return {"status": "ok", "url": session["url"], "session_id": session["id"]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Stripe checkout failed: {e}")

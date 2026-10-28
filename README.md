@@ -154,6 +154,9 @@ Each country connector is a pluggable "tool" the agent uses to fetch local data.
 | Spain | `SpainConnector` | INE + idealista.com (Q1-2025) | Madrid, Barcelona, Marbella, Valencia, Sevilla, Bilbao, Palma, Ibiza + 9 more |
 | Portugal | `PortugalConnector` | INE PT + Confidencial Imobiliario | Lisboa, Porto, Algarve, Cascais, Madeira, Azores + 13 more |
 | Georgia | `GeorgiaConnector` | myhome.ge benchmarks | Tbilisi, Batumi, Kutaisi, Kobuleti, Gudauri + 4 more |
+| Montenegro | `MontenegroConnector` | monstat.org / primera nepokretnost ranges (2025 benchmarks) | Tivat, Budva, Kotor |
+| UAE | `UAEConnector` | DLD / Bayut / Property Finder ranges (2025 benchmarks) | Palm Jumeirah, Downtown, Dubai Marina, Business Bay, JVC |
+| Bulgaria | `BulgariaConnector` | imot.bg / NSI ranges (2025 benchmarks) | Sofia, Bansko, Sunny Beach, Sozopol |
 | **Any other** | `GenericConnector` | **AI-estimated via provider chain** | **Any city worldwide** |
 
 The generic connector means the agent works for **any country in the world** — it just gets better with a dedicated connector.
@@ -231,6 +234,7 @@ landiq/
 │   ├── spain.py              ← ES: INE + idealista.com (17 cities)
 │   ├── portugal.py           ← PT: INE PT + Confidencial Imobiliario (19 cities)
 │   ├── georgia.py            ← GE: myhome.ge + Tbilisi/Batumi plans
+│   ├── montenegro.py / uae.py / bulgaria.py  ← ME / AE / BG: city benchmarks (shared base: _benchmark.py)
 │   └── generic.py            ← fallback: AI estimates for any country worldwide
 ├── src/
 │   ├── landiq_core.py        ← agent brain: DCF, Monte Carlo, scenario builder, AI verdict
@@ -268,7 +272,7 @@ Don't want to self-host? **[get-scala.com/landiq-reports](https://get-scala.com/
 3. Add your country to the README table
 4. Open a PR — we review country connectors within 48h
 
-**Priority connectors wanted:** Montenegro, Bulgaria, UAE, UK, Germany, France, Greece, Croatia, Turkey.
+**Priority connectors wanted:** UK, Germany, France, Greece, Croatia, Turkey.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 

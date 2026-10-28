@@ -57,6 +57,16 @@ def test_urbanistic_data():
     assert get_connector("ME").fetch_urbanistic_data("Kotor").max_height_m < get_connector("ME").fetch_urbanistic_data("Budva").max_height_m
 
 
+def test_engine_registers_every_native_connector():
+    """landiq_core must import every connector module, otherwise the country silently falls back to Generic."""
+    import re
+    src = open(os.path.join(os.path.dirname(__file__), "..", "src", "landiq_core.py")).read()
+    imported = set(re.findall(r"import connectors\.(\w+)", src))
+    files = {f[:-3] for f in os.listdir(os.path.join(os.path.dirname(__file__), "..", "connectors"))
+             if f.endswith(".py") and f not in ("__init__.py", "base.py", "generic.py", "_benchmark.py")}
+    assert files <= imported, f"not registered by the engine: {sorted(files - imported)}"
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

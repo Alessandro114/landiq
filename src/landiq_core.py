@@ -229,6 +229,8 @@ class LandIQEngine:
         # Trigger registration of all built-in connectors
         import connectors.italy   # noqa: F401
         import connectors.georgia  # noqa: F401
+        import connectors.spain  # noqa: F401
+        import connectors.portugal  # noqa: F401
         import connectors.montenegro  # noqa: F401
         import connectors.uae  # noqa: F401
         import connectors.bulgaria  # noqa: F401
